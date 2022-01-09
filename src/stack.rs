@@ -51,11 +51,11 @@ impl<T> Stack<T> {
 
 #[cfg(test)]
 mod test_stack {
-    use crate::stack;
+    use crate::stack::*;
 
     #[test]
     fn stack_push() {
-        let mut stack = stack::Stack::new(5);
+        let mut stack = Stack::new(5);
         
         let ret = stack.push(542u32);
         assert_eq!(ret, Ok(()));
@@ -65,31 +65,8 @@ mod test_stack {
     }
 
     #[test]
-    fn stack_push_when_full_returns_stackfullerror() {
-        let mut stack = stack::Stack::new(5);
-
-        let mut ret = stack.push(542u32);
-        assert_eq!(ret, Ok(()));
-
-        ret = stack.push(542u32);
-        assert_eq!(ret, Ok(()));
-
-        ret = stack.push(542u32);
-        assert_eq!(ret, Ok(()));
-
-        ret = stack.push(542u32);
-        assert_eq!(ret, Ok(()));
-
-        ret = stack.push(542u32);
-        assert_eq!(ret, Ok(()));
-
-        ret = stack.push(542u32);
-        assert_eq!(ret, Err(stack::StackFullError));
-    }
-
-    #[test]
     fn stack_pop() {
-        let mut stack = stack::Stack::new(5);
+        let mut stack = Stack::new(5);
 
         let ret = stack.push(542u32);
         assert_eq!(ret, Ok(()));
@@ -99,8 +76,48 @@ mod test_stack {
     }
 
     #[test]
+    fn stack_push_when_full_returns_stackfullerror() {
+        let mut stack = Stack::new(5);
+
+        let mut ret = stack.push(542u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = stack.push(543u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = stack.push(544u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = stack.push(545u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = stack.push(546u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = stack.push(547u32);
+        assert_eq!(ret, Err(StackFullError));
+    }
+
+    #[test]
+    fn stack_push_pop_in_correct_order() {
+        let mut stack = Stack::new(5);
+
+        let mut ret = stack.push(542u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = stack.push(543u32);
+        assert_eq!(ret, Ok(()));
+
+        let mut popped_val = stack.pop();
+        assert_eq!(popped_val, Some(543u32));
+
+        popped_val = stack.pop();
+        assert_eq!(popped_val, Some(542u32));
+    }
+
+    #[test]
     fn stack_pop_when_empty_returns_none() {
-        let mut stack = stack::Stack::<u32>::new(5);
+        let mut stack = Stack::<u32>::new(5);
 
         let ret = stack.pop();
         assert_eq!(ret, None);
@@ -108,14 +125,14 @@ mod test_stack {
 
     #[test]
     fn stack_new_returns_empty_stack() {
-        let stack = stack::Stack::<u32>::new(5);
+        let stack = Stack::<u32>::new(5);
 
         assert_eq!(stack.stack.len(), 0);
     }
 
     #[test]
     fn stack_new_returns_stack_with_correct_capacity() {
-        let stack = stack::Stack::<u32>::new(5);
+        let stack = Stack::<u32>::new(5);
 
         assert_eq!(stack.stack.capacity(), 5);
     }
@@ -124,7 +141,7 @@ mod test_stack {
     #[should_panic]
     fn stack_allocate_max_isize_should_panic() {
         // panic - trying to allocate too much memory
-        let stack = stack::Stack::<u32>::new(isize::MAX as usize); 
+        let stack = Stack::<u32>::new(isize::MAX as usize); 
         
         assert_eq!(stack.stack.capacity(), isize::MAX as usize);
     }
