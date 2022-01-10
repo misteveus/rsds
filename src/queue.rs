@@ -1,15 +1,253 @@
 
 use std::vec::Vec;
+use std::fmt;
 
-pub struct Queue<T> {
-    queue: Vec<T>
+#[derive(Debug, PartialEq)]
+pub struct QueueFullError;
+
+impl fmt::Display for QueueFullError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "queue is full")
+    }
 }
 
-impl<T> Queue<T> {
-    
+pub struct Queue<T: Clone> {
+    queue: Vec<Option<T>>,
+    count: usize,
+    tail: usize,
+}
+
+impl<T: Clone> Queue<T> {
+    pub fn new(size: usize) -> Self {
+        let mut queue = Queue {
+            queue: Vec::<Option<T>>::with_capacity(size),
+            count: 0,
+            tail: 0, 
+        };
+
+        for _ in 0..queue.queue.capacity() {
+            queue.queue.push(None);
+        }
+
+        queue
+    }
+
+    pub fn enqueue(&mut self, val: T) -> Result<(), QueueFullError> {
+        if self.count == self.queue.capacity() {
+            Err(QueueFullError)
+        } else {
+            self.queue[self.tail] = Some(val);
+            self.count += 1;
+            self.tail += 1;
+            self.tail %= self.queue.capacity();
+            Ok(())
+        }
+    }
+
+    pub fn dequeue(&mut self) -> Option<T> {
+        if self.count == 0 {
+            None
+        } else {
+            
+            let head = (self.tail + self.queue.capacity() - self.count) % self.queue.capacity();
+            let ret = self.queue[head].clone();
+            
+            self.queue[head] = None;
+            self.count -= 1;
+
+            ret
+        }
+    }
+
+    pub fn peek(&self) -> &Option<T> {
+        let head = (self.tail + self.queue.capacity() - self.count) % self.queue.capacity();
+        self.queue.get(head).unwrap()
+    }
 }
 
 #[cfg(test)]
 mod test_queue {
+    use crate::queue::*;
 
+    #[test]
+    fn queue_new_fills_inner_vec() {
+        let queue = Queue::<u32>::new(5);
+
+        assert_eq!(queue.queue.len(), 5);
+    }
+
+    #[test]
+    fn queue_new_creates_queue_with_correct_capacity() {
+        let queue = Queue::<u32>::new(5);
+
+        assert_eq!(queue.queue.capacity(), 5);
+    }
+
+    #[test]
+    fn queue_new_creates_inner_vec_filled_with_none() {
+        let queue = Queue::<u32>::new(5);
+
+        for item in &queue.queue {
+            assert_eq!(item, &None);
+        }
+
+        assert_eq!(queue.queue.capacity(), 5);
+    } 
+
+    #[test]
+    fn queue_enqueue_places_item_at_tail() {
+        let mut queue = Queue::new(5);
+
+        let mut ret = queue.enqueue(1u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(2u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(3u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(4u32);
+        assert_eq!(ret, Ok(()));
+
+        assert_eq!(&queue.queue[queue.tail - 1].unwrap(), &4u32);
+    }
+
+    #[test]
+    fn queue_tail_and_head_equal_when_full() {
+        let mut queue = Queue::new(5);
+
+        let mut ret = queue.enqueue(1u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(2u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(3u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(4u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(4u32);
+        assert_eq!(ret, Ok(()));
+
+        let head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(head, queue.tail);
+    }
+
+    #[test]
+    fn queue_count_zero_when_empty() {
+        let mut queue = Queue::new(5);
+
+        let mut ret = queue.enqueue(1u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(2u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(3u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(4u32);
+        assert_eq!(ret, Ok(()));
+
+        let mut ret = queue.dequeue();
+        assert_eq!(ret, Some(1u32));
+
+        ret = queue.dequeue();
+        assert_eq!(ret, Some(2u32));
+
+        ret = queue.dequeue();
+        assert_eq!(ret, Some(3u32));
+
+        ret = queue.dequeue();
+        assert_eq!(ret, Some(4u32));
+
+        assert_eq!(queue.count, 0);
+    }
+
+    #[test]
+    fn queue_enqueue_returns_queuefullerror_when_already_full() {
+        let mut queue = Queue::new(5);
+
+        let mut ret = queue.enqueue(1u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(2u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(3u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(4u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(5u32);
+        assert_eq!(ret, Ok(()));
+
+        ret = queue.enqueue(6u32);
+        assert_eq!(ret, Err(QueueFullError));
+    }
+
+    #[test]
+    fn queue_peek_returns_ref_to_head() {
+        let mut queue = Queue::new(5);
+
+        let mut ret = queue.enqueue(1u32);
+        assert_eq!(ret, Ok(()));
+
+        let mut peek = queue.peek();
+        let mut head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+
+        ret = queue.enqueue(2u32);
+        assert_eq!(ret, Ok(()));
+
+        peek = queue.peek();
+        head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+
+        ret = queue.enqueue(3u32);
+        assert_eq!(ret, Ok(()));
+
+        peek = queue.peek();
+        head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+
+        ret = queue.enqueue(4u32);
+        assert_eq!(ret, Ok(()));
+
+        peek = queue.peek();
+        head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+
+        let mut ret = queue.dequeue();
+        assert_eq!(ret, Some(1u32));
+
+        peek = queue.peek();
+        head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+
+        ret = queue.dequeue();
+        assert_eq!(ret, Some(2u32));
+
+        peek = queue.peek();
+        head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+
+        ret = queue.dequeue();
+        assert_eq!(ret, Some(3u32));
+
+        peek = queue.peek();
+        head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+
+        ret = queue.dequeue();
+        assert_eq!(ret, Some(4u32));
+
+        peek = queue.peek();
+        head = (queue.tail + queue.queue.capacity() - queue.count) % queue.queue.capacity();
+        assert_eq!(Some(peek), queue.queue.get(head));
+    }
 }
