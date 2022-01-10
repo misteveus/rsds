@@ -12,7 +12,8 @@ impl fmt::Display for StackFullError {
     }
 }
 
-/// A heap allocated stack initialized with a specific size.
+/// A heap allocated stack that holds elements of type `T`
+/// and initialized with a specific size.
 pub struct Stack<T> {
     stack: Vec<T> // visible to crate for unit testing 
 } 

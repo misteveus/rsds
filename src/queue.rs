@@ -2,6 +2,7 @@
 use std::vec::Vec;
 use std::fmt;
 
+/// `Error` type indicating the `Queue` is full.
 #[derive(Debug, PartialEq)]
 pub struct QueueFullError;
 
@@ -11,13 +12,23 @@ impl fmt::Display for QueueFullError {
     }
 }
 
+/// A heap allocated `Queue` of type `T`. The type must 
+/// implement the `Clone` trait.
 pub struct Queue<T: Clone> {
     queue: Vec<Option<T>>,
     count: usize,
     tail: usize,
 }
 
+
 impl<T: Clone> Queue<T> {
+    /// Create a new `Queue` with a max capacity of `size`. 
+    /// ```
+    /// use rsds::queue::Queue;
+    /// 
+    /// // Empty Queue created capable of holding up to 5 u32 elements. 
+    /// let q = Queue::<u32>::new(5);
+    /// ```
     pub fn new(size: usize) -> Self {
         let mut queue = Queue {
             queue: Vec::<Option<T>>::with_capacity(size),
@@ -32,6 +43,15 @@ impl<T: Clone> Queue<T> {
         queue
     }
 
+    /// Places a value at the end of the `Queue` if there is room or 
+    /// return a `QueueFullError` if full.
+    /// ```
+    /// use rsds::queue::Queue;
+    ///
+    /// let mut q = Queue::<u32>::new(5);
+    /// 
+    /// q.enqueue(42u32);
+    /// ```
     pub fn enqueue(&mut self, val: T) -> Result<(), QueueFullError> {
         if self.count == self.queue.capacity() {
             Err(QueueFullError)
@@ -44,6 +64,20 @@ impl<T: Clone> Queue<T> {
         }
     }
 
+    /// Removes a value from the front of the `Queue` as an `Option<T>` or `None`.
+    /// if the Queue is empty.
+    /// ```
+    /// use rsds::queue::Queue;
+    /// 
+    /// let mut q = Queue::<u32>::new(5);
+    /// 
+    /// q.enqueue(42u32);
+    /// 
+    /// // Remove value from front of Queue. 
+    /// let removed = q.dequeue();
+    /// 
+    /// assert_eq!(removed, Some(42u32));
+    /// ```
     pub fn dequeue(&mut self) -> Option<T> {
         if self.count == 0 {
             None
@@ -59,6 +93,18 @@ impl<T: Clone> Queue<T> {
         }
     }
 
+    /// Returns an immutable reference to front of Queue.
+    /// ```
+    /// use rsds::queue::Queue;
+    /// 
+    /// // Creates an empty Queue capable of holding up to 5 u32 elements. 
+    /// let mut q = Queue::<u32>::new(5);
+    ///
+    /// q.enqueue(42u32);
+    /// 
+    /// let peeked = q.peek();
+    /// assert_eq!(peeked, &Some(42u32));
+    /// ``` 
     pub fn peek(&self) -> &Option<T> {
         let head = (self.tail + self.queue.capacity() - self.count) % self.queue.capacity();
         self.queue.get(head).unwrap()
