@@ -12,22 +12,43 @@ impl fmt::Display for StackFullError {
     }
 }
 
-/// A heap allocated stack that holds elements of type `T`
-/// and initialized with a specific size.
+/// A heap allocated stack that holds elements of type `T`.
 pub struct Stack<T> {
-    stack: Vec<T> // visible to crate for unit testing 
+    stack: Vec<T>
 } 
 
 impl<T> Stack<T> {
-    /// Create a new stack with a capacity of `size`. 
+    /// Create a new stack with a max capacity of `size`. 
+    /// ```
+    /// use rsds::stack::Stack;
+    /// 
+    /// // Initialize an emply stack with a max capacity of 5 `u32`'s.
+    /// let mut s = Stack::<u32>::new(5);
+    /// ```
     pub fn new(size: usize) -> Self {
         Stack {
             stack: Vec::with_capacity(size),
         }
     }
     
-    /// Push a T onto the stack if the stack is not full. If the 
+    /// Push a value onto the stack if the stack is not full. If the 
     /// stack is full, a `StackFullError` is returned.
+    /// ```
+    /// use rsds::stack::{Stack, StackFullError};
+    /// 
+    /// let mut s = Stack::<u32>::new(5);
+    /// 
+    /// // fill the stack
+    /// s.push(1u32);
+    /// s.push(2u32);
+    /// s.push(3u32);
+    /// s.push(4u32);
+    /// s.push(5u32);
+    /// 
+    /// // stack is full and should return a StackFullError
+    /// let ret = s.push(6u32);
+    /// assert_eq!(ret, Err(StackFullError));
+    /// ```
     pub fn push(&mut self, val: T) -> Result<(), StackFullError> {
         if self.stack.len() < self.stack.capacity() {
             self.stack.push(val);
@@ -39,11 +60,51 @@ impl<T> Stack<T> {
 
     /// Removes an element from the stack if one exists. 
     /// Returns `Some(T)` or `None` if the stack is empty.
+    /// ```
+    /// use rsds::stack::Stack;
+    /// 
+    /// let mut s = Stack::<u32>::new(5);
+    /// 
+    ///
+    /// s.push(1u32);
+    /// s.push(2u32);
+    /// 
+    /// // remove values from stack
+    /// let mut ret = s.pop();
+    /// assert_eq!(ret, Some(2u32));
+    /// 
+    /// ret = s.pop();
+    /// assert_eq!(ret, Some(1u32));
+    /// 
+    /// // stack empty and should return None
+    /// ret = s.pop();
+    /// assert_eq!(ret, None);
+    /// ```
     pub fn pop(&mut self) -> Option<T> {
         self.stack.pop()
     }
 
     /// Returns the current size of the stack as a `usize`.
+    ///     /// ```
+    /// use rsds::stack::Stack;
+    /// 
+    /// let mut s = Stack::<u32>::new(5);
+    /// 
+    ///
+    /// s.push(1u32);
+    /// s.push(2u32);
+    /// 
+    /// // remove values from stack
+    /// let mut ret = s.pop();
+    /// assert_eq!(ret, Some(2u32));
+    /// 
+    /// ret = s.pop();
+    /// assert_eq!(ret, Some(1u32));
+    /// 
+    /// // stack is empty and should return None
+    /// ret = s.pop();
+    /// assert_eq!(ret, None);
+    /// ```
     pub fn size(&self) -> usize {
         self.stack.len()
     }
