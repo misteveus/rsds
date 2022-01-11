@@ -65,7 +65,6 @@ impl<T> Stack<T> {
     /// 
     /// let mut s = Stack::<u32>::new(5);
     /// 
-    ///
     /// s.push(1u32);
     /// s.push(2u32);
     /// 
@@ -85,25 +84,17 @@ impl<T> Stack<T> {
     }
 
     /// Returns the current size of the stack as a `usize`.
-    ///     /// ```
+    /// ```
     /// use rsds::stack::Stack;
     /// 
     /// let mut s = Stack::<u32>::new(5);
     /// 
-    ///
     /// s.push(1u32);
     /// s.push(2u32);
     /// 
-    /// // remove values from stack
-    /// let mut ret = s.pop();
-    /// assert_eq!(ret, Some(2u32));
-    /// 
-    /// ret = s.pop();
-    /// assert_eq!(ret, Some(1u32));
-    /// 
-    /// // stack is empty and should return None
-    /// ret = s.pop();
-    /// assert_eq!(ret, None);
+    /// // stack should have 2 elements
+    /// let size = s.size();
+    /// assert_eq!(size, 2);
     /// ```
     pub fn size(&self) -> usize {
         self.stack.len()
