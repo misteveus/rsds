@@ -44,3 +44,14 @@ impl<T> Deque<T> {
     }
 }
 
+#[cfg(test)]
+mod test_deque {
+    use crate::deque::*;
+
+    #[test]
+    fn test_new_creates_correct_capcity() {
+        let mut d = Deque::<u32>::new(5);
+
+        assert_eq!(d.data.capacity(), 5);
+    }
+}
