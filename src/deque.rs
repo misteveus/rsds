@@ -49,9 +49,18 @@ mod test_deque {
     use crate::deque::*;
 
     #[test]
-    fn test_new_creates_correct_capcity() {
+    fn deque_new_creates_correct_capcity() {
         let mut d = Deque::<u32>::new(5);
 
         assert_eq!(d.data.capacity(), 5);
+    }
+
+    #[test]
+    fn deque_new_initial_size_zero() {
+        let mut d = Deque::<u32>::new(5);
+
+        let size = d.size();
+        
+        assert_eq!(size, 0);
     }
 }
